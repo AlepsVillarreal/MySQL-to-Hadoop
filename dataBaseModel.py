@@ -39,7 +39,7 @@ class dataBase(object):
 			results = cursor.execute(flushQuery)
 			
 			#Create user again
-			creation = "CREATE USER {}@{} IDENTIFIED BY '{}'".format(newUser, newHost, newPass)
+			creation = "CREATE USER IF NOT EXISTS {}@{} IDENTIFIED BY '{}'".format(newUser, newHost, newPass)
 			print(creation)
 			results = cursor.execute(creation)
 			return 0
@@ -55,14 +55,19 @@ class dataBase(object):
 
 	def createDB(self, cursor, dbName):
 		try:
-			createDBQuery = cursor.execute("CREATE DATABASE {}".format(dbName))
+			createDBQuery = cursor.execute("CREATE DATABASE IF NOT EXISTS {}".format(dbName))
+			results = cursor.execute(createDBQuery).fetchall()
+
 		except Exception as e:
 			print (e)
 
-	def grantPriviledgesToUser(self, cursor, userName, hostName, dataBase):
+	def grantPriviledgesToUser(self, cursor, userName, hostName):
 		try:
-			query = "GRANT ALL PRIVILEGES ON {}.* TO '{}'@'{}';".format(dataBase, userName, hostName)
+			query = "GRANT ALL PRIVILEGES ON *.* TO '{}'@'{}';".format(userName, hostName)
 			results = cursor.execute(query)
+
+			flushQuery = "FLUSH PRIVILEGES;"
+			flushResults = cursor.execute(flushQuery)
 		except Exception as e:
 			print (e)
 			return 1

@@ -1,6 +1,6 @@
 import unittest
 import sys
-from main import dataBase
+from dataBaseModel import dataBase
 
 #Function that should return
 class test_main(unittest.TestCase):
@@ -21,7 +21,7 @@ class test_main(unittest.TestCase):
 			results = createUserCursor.execute(showUserQuery)
 			existingUsers = []
 			for element in createUserCursor.fetchall():
-				print(element)
+				#print(element)
 				if userName in element:
 					foundUser = True
 
@@ -31,21 +31,30 @@ class test_main(unittest.TestCase):
 
 	def test_grantPriviledgesToUser(self, cursor, user):
 		try:
-			showUserQuery = 'select * from mysql.user;'
+			noPermission = False
+
+			showUserQuery = 'select * from mysql.user where user = \'{}\';'.format(user)
 			results = cursor.execute(showUserQuery)
 
-			for element in results.fetchall():
-				print(element)
+			for element in cursor.fetchall():
+				#print (element)
+				if 'Y' in element:
+					noPermission = True
 
+
+			#Need to change criteria. Right now, only checking if there are any Y's in the mysql.users table
+			self.assertTrue(noPermission, "User {} has some N's in his permissions")
+					
 		except Exception as e:
 			print (e)
 
 	def test_createDB(self, cursor, dbToLookFor):
 		try:
 			doesDbExist = False
+			cursor.execute("SHOW DATABASES;")
 
-			results = cursor.execute("SHOW DATABASES;")
-			for element in results:
+			for element in cursor.fetchall():
+				#print(element)
 				if dbToLookFor in element:
 					doesDbExist = True
 
@@ -71,11 +80,11 @@ class test_main(unittest.TestCase):
 
 if __name__ == '__main__':
 	#print(sys.path)
-	#initializing test object for main
+	#initializing test object and dataBase object
 	testDB = test_main()
-	#Initializing rootDB object
 	rootDB = dataBase()
 	#rootDB = dataBase('localhost', 'root', 'root')
+
 	#Testing new DB connection
 	rootDBConnection = rootDB.createConnection('root', 'root', 'localhost')
 	testDB.test_createConnection(rootDBConnection)
@@ -84,19 +93,13 @@ if __name__ == '__main__':
 	newUserName = 'alex'
 	newUserPassword = 'alex'
 	newHostName = 'localhost'
-	print(type(rootDB))
 	createUserCursor = rootDBConnection.cursor()
 	rootDB.createUser(createUserCursor, newHostName, newUserName, newUserPassword)
 	testDB.test_createUser(createUserCursor, newUserName)
 
 	#Grant priviledges to recently created user
 	grantPrivilegesCursor = rootDBConnection.cursor()
-	showUserQuery = 'select User from mysql.user;'
-	results = grantPrivilegesCursor.execute(showUserQuery)
-	print(grantPrivilegesCursor)
-	for result in results.fetchall():
-		print (result) 
-	rootDB.grantPriviledgesToUser(grantPrivilegesCursor, 'alex', 'localhost', 'mysql')
+	rootDB.grantPriviledgesToUser(grantPrivilegesCursor, 'alex', 'localhost')
 	checkPrivilegeCursor = rootDBConnection.cursor()
 	testDB.test_grantPriviledgesToUser(checkPrivilegeCursor, 'alex')
 
@@ -105,8 +108,13 @@ if __name__ == '__main__':
 	testDB.test_createConnection(newUserDBConnection)
 
 	#Create the database
-	dbName = 'sampleDB'
+	dbName = 'sampledb'
+	createDbCursor = newUserDBConnection.cursor()
+	rootDB.createDB(createDbCursor, dbName)
+	testDB.test_createDB(createDbCursor, dbName)
 
 	#Create the tables for loading
+
+
 
 	#Load the data to the tables
