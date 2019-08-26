@@ -63,11 +63,38 @@ class test_main(unittest.TestCase):
 		except Exception as e:
 			print (e)
 
-	def test_createTables(self, returnValue):
+	def test_createTables(self, cursor, dictOfTables):
 		try:
-			#Show Tables
-			#If assumed table name does not show up in show tables
-			pass
+			#This method will check for the existence of the appropriate tables/columns
+			error_createTables_tables = False
+			err_Tables = []
+			error_createTables_columns = False
+			err_Columns = []
+
+			checkTablesQuery = 'SHOW TABLES;'
+			cursor.execute(checkTablesQuery)
+
+			#Check if tables were actually created
+			for table in cursor.fetchall():
+				if table not in dictOfTables:
+					err_Tables.append(table)
+					error_createTables_tables = True
+
+			#For all tables from the valid tables, get the columns
+			for table in dictOfTables.keys():
+				getColumnsOfTableQuery = "SHOW COLUMNS FROM {};".format(table)
+				tableColumns = cursor.execute(getColumnsOfTableQuery).fetchall()
+				#for all actual columns
+				for column in tableColumns:
+					#Check if the column is inside the list that is the value of the dictOfTables dictionary.
+					#If it's not there, one column is not there
+					if column not in dictOfTables['table']:
+						err_Columns.append(column)
+						error_createTables_columns = True
+
+			self.assertFalse(error_createTables_tables, "Error while creating the tables of {}".format(err_Tables))
+			self.assertFalse(error_createTables_columns, "Error while creating the columns of {}".format(err_Columns))
+
 		except Exception as e:
 			print (e)
 
@@ -114,7 +141,6 @@ if __name__ == '__main__':
 	testDB.test_createDB(createDbCursor, dbName)
 
 	#Create the tables for loading
-
 
 
 	#Load the data to the tables

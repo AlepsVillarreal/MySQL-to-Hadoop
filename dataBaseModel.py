@@ -4,11 +4,14 @@ import sys
 
 class dataBase(object):
 	"""
-	Create a personal user in MySQL
-	---------------------------------	
-	First, log in as root
-	Then, create the cursor to iterate over rows returned by a query
-	Then, create the user
+	Database model class
+	---------------------------------
+	1. Creates users
+	2. Grants permissions to user
+	3. Creates a connection with a given user
+	4. Creates a DB
+	5. Creates a schema
+	6. Loads info into tables
 	"""
 	def __init__(self, ):
 		pass
