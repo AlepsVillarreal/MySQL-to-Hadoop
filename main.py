@@ -1,5 +1,4 @@
 import mysql.connector
-import MySQLdb
 import sys
 #inhouse
 
@@ -11,20 +10,16 @@ class dataBase(object):
 	Then, create the cursor to iterate over rows returned by a query
 	Then, create the user
 	"""
-	def __init__(self, hostValue, userValue, passwdValue, newUser=None, newHost=None, newPass=None):
-		self.hostValue = hostValue
-		self.userValue = userValue
-		self.passwdValue = passwdValue
-		self.newUser = newUser
-		self.newHost = newHost
-		self.newPass = newPass
+	def __init__(self, ):
+		pass
 
-	def createConnection(self):
+	@staticmethod
+	def createConnection(userName, passwd, hostValue):
 		try:
 			mydb = mysql.connector.connect(
-			  host=self.hostValue,
-			  user=self.userValue,
-			  passwd=self.passwdValue
+			  host=hostValue,
+			  user=userName,
+			  passwd=passwd
 			)
 			return mydb
 		except Exception as e:
@@ -58,3 +53,16 @@ class dataBase(object):
 		except Exception as e:
 			print (e)
 
+	def createDB(self, cursor, dbName):
+		try:
+			createDBQuery = cursor.execute("CREATE DATABASE {}".format(dbName))
+		except Exception as e:
+			print (e)
+
+	def grantPriviledgesToUser(self, cursor, userName, hostName, dataBase):
+		try:
+			query = "GRANT ALL PRIVILEGES ON {}.* TO '{}'@'{}';".format(dataBase, userName, hostName)
+			results = cursor.execute(query)
+		except Exception as e:
+			print (e)
+			return 1
