@@ -63,7 +63,7 @@ class test_main(unittest.TestCase):
 		except Exception as e:
 			print (e)
 
-	def test_createTables(self, cursor, dictOfTables):
+	def test_createTables(self, cursor, dictOfTables, dbName):
 		try:
 			#This method will check for the existence of the appropriate tables/columns
 			error_createTables_tables = False
@@ -71,11 +71,16 @@ class test_main(unittest.TestCase):
 			error_createTables_columns = False
 			err_Columns = []
 
+			useDbQuery = 'USE {};'.format(dbName)
+			cursor.execute(useDbQuery)
+
 			checkTablesQuery = 'SHOW TABLES;'
 			cursor.execute(checkTablesQuery)
 
 			#Check if tables were actually created
 			for table in cursor.fetchall():
+				print('ALL TABLES')
+				print(table)
 				if table not in dictOfTables:
 					err_Tables.append(table)
 					error_createTables_tables = True
@@ -83,9 +88,11 @@ class test_main(unittest.TestCase):
 			#For all tables from the valid tables, get the columns
 			for table in dictOfTables.keys():
 				getColumnsOfTableQuery = "SHOW COLUMNS FROM {};".format(table)
-				tableColumns = cursor.execute(getColumnsOfTableQuery).fetchall()
+				tableColumns = cursor.execute(getColumnsOfTableQuery)
 				#for all actual columns
-				for column in tableColumns:
+				for column in cursor.fetchall():
+					print('ALL COLUMNS OF TABLE {}'.format(table))
+					print(column)
 					#Check if the column is inside the list that is the value of the dictOfTables dictionary.
 					#If it's not there, one column is not there
 					if column not in dictOfTables['table']:
@@ -141,6 +148,11 @@ if __name__ == '__main__':
 	testDB.test_createDB(createDbCursor, dbName)
 
 	#Create the tables for loading
-
+	dictOfTables = {}
+	dictOfTables['tempbycity'] = ['dt', 'AverageTemperature', 'AverageTemperatureUncertainty', 
+	'City', 'Country', 'Latitude', 'Longitude']
+	createTableCursor = newUserDBConnection.cursor()
+	rootDB.createTables(createTableCursor, dbName)
+	testDB.test_createTables(createTableCursor, dictOfTables, dbName)
 
 	#Load the data to the tables

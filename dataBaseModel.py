@@ -50,16 +50,32 @@ class dataBase(object):
 			print (e)
 			return 1
 
-	def runQuery(self):
+	def createTables(self, cursor, dbName):
 		try:
-			pass
+			#Use the correct DB
+			changeToDb = 'USE {};'.format(dbName)
+			cursor.execute(changeToDb)
+
+			#Drop the table if it exists
+			dropTableQuery = "DROP TABLE IF EXISTS tempbycity;"
+			cursor.execute(dropTableQuery)
+
+			createTableQuery = "CREATE TABLE IF NOT EXISTS tempbycity (dt DATE, averageTemperature INT, averageTemperatureUncertainty INT, city varchar(50), country varchar(50), latitude varchar(50), longitude varchar(50))"
+			cursor.execute(createTableQuery)
+
+			describeTableQuery = "describe tempbycity;"
+			results = cursor.execute(describeTableQuery)
+
+			for result in cursor.fetchall():
+				print(result)
+
 		except Exception as e:
 			print (e)
 
 	def createDB(self, cursor, dbName):
 		try:
 			createDBQuery = cursor.execute("CREATE DATABASE IF NOT EXISTS {}".format(dbName))
-			results = cursor.execute(createDBQuery).fetchall()
+			cursor.execute(createDBQuery)
 
 		except Exception as e:
 			print (e)
